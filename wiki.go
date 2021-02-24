@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,7 +31,7 @@ func (p *Page) save() error {
 func loadPage(title string) (*Page, error) {
 	path := "data/"
 	filename := title + ".txt"
-	
+
 	body, error := ioutil.ReadFile(path + filename)
 	if error != nil{
 		return nil, error
@@ -60,9 +60,11 @@ func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Here we will extract the page title from the Request,
 		// and call the provided handler 'fn'
-        m := validPath.FindStringSubmatch(r.URL.Path)
+		m := validPath.FindStringSubmatch(r.URL.Path)
         if m == nil {
-            http.NotFound(w, r)
+			// http.NotFound(w, r)
+			fmt.Println("enter makeHandler")
+			http.Redirect(w, r, "/view/FrontPage", http.StatusFound)
             return
         }
         fn(w, r, m[2])
@@ -79,8 +81,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string)  {
 	// title, err := getTitle(w, r)
     // if err != nil {
     //     return
-    // }
-
+	// }
+	
+	fmt.Println("enter viewHandler")
 	p, err := loadPage(title)
 	if err != nil{
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -123,6 +126,11 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
     http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
+func rootHandler(w http.ResponseWriter, r *http.Request, title string){
+	fmt.Println("enter rootHandler")
+	// http.Redirect(w, r, "/view/root", http.StatusFound)
+}
+
 func main()  {
 	// // Create a page
 	// p1 := &Page{Title: "TestPage", Body: []byte("This is a Sample Page.")}
@@ -139,6 +147,7 @@ func main()  {
 	
     http.HandleFunc("/view/", makeHandler(viewHandler))
     http.HandleFunc("/edit/", makeHandler(editHandler))
-    http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/", makeHandler(rootHandler)) // root Handler is not executed
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
