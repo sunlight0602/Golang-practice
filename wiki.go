@@ -15,21 +15,24 @@ type Page struct {
 	Body []byte // []byte means "a byte slice"
 }
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("tmpl/edit.html", "tmpl/view.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 func (p *Page) save() error {
+	path := "data/"
 	filename := p.Title + ".txt"
 
-	return ioutil.WriteFile(filename, p.Body, 0600)
+	return ioutil.WriteFile(path + filename, p.Body, 0600)
 }
 // This is a method named save that takes as its receiver p, a pointer to Page.
 // It takes no parameters, and returns a value of type error.
 // If all goes well, Page.save() will return nil
 
 func loadPage(title string) (*Page, error) {
+	path := "data/"
 	filename := title + ".txt"
-	body, error := ioutil.ReadFile(filename)
+	
+	body, error := ioutil.ReadFile(path + filename)
 	if error != nil{
 		return nil, error
 	}
